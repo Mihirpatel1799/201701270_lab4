@@ -1,0 +1,231 @@
+
+setup:
+
+mongo --host 10.100.60.11 --port 27017
+
+use <type id here>
+
+db.auth('<type id here>','<type id here>')
+
+
+db.posts.insert({
+
+		title:'Biden Takes Command of Race, Winning Three States Including Michigan',
+		body:'Joseph R. Biden Jr. widened his advantage over Bernie Sanders in the Democratic primary race, capturing Mississippi and Missouri as well as Michigan, with support from both black and white voters.',
+		category: 'Politics',
+		views:300,
+		tags:['news','events'],
+
+		user:{
+			name: 'John Doe',
+			status: 'author',
+			},
+		date: Date()
+})
+--------------------------------------------------------------
+Question1:
+
+db.posts.insertMany(
+[{
+	category:"Politics",
+	date: Date(),
+	author:"Jules Winnfield",
+	title:"Sanders and Biden Cancel Events as Coronavirus Fears Upend Primary",
+	body:"The presidential race entered extraordinary new ground as the leading Democrats called off primary-night events in Cleveland, and President Trump’s signature rallies also faced an uncertain future.",
+	number_of_views:20,
+	tags:["news","events"]
+},
+{
+	category:"Sports",
+	date: Date(),
+	author:"Vincent Vega",
+	title:"Tottenham knocked out of Champions League by Leipzig",
+	body:"Tottenham Hotspur's Champions League Campaign comes to an end as they are well beaten by RB Leipzig in the last 16.",	
+	number_of_views:15,
+	tags:["sports","european football"]
+
+},
+{
+	category:"Entertainment & Arts",
+	date: new Date("2020-03-10T17:30:00"),
+	editor: "Hans Landa",
+	title:"Parasite becomes UK's most successful international film",
+	body:"Oscar-winning South Korean movie Parasite has achieved another milestone by becoming the highest-grossing non-English language film in the UK.",
+	number_of_views:10,
+	tags:["The Oscars","Hollywood"]
+}]);
+
+
+
+
+
+--------------------------------------------------------------
+Question2:
+
+db.posts.find(
+{
+	$or:
+	[
+		{
+			"category":"Politics"
+		},
+		{
+			"number_of_views":{$lte: 10},
+			"author":"Jules Winnfield"
+		}
+	]
+}).pretty()
+
+
+
+
+
+--------------------------------------------------------------
+Question3:
+
+db.posts.find({ tags: "news" },{ $where: "this.tags.length > 1" }).pretty()
+
+
+
+
+
+-------------------------------------------------------------
+Question 4:
+
+db.posts.updateOne({author:"Jules Winnfield"},{$push:{tags:"UnitedStates"}})
+
+
+
+
+
+------------------------------------------------------------
+bulkWrite:
+db.posts.bulkWrite([
+	{insertOne:{
+		"document":{
+		title:'Facebook was marking legitimate news articles about the coronavirus as spam due to a software bug',
+		body:'Facebook started marking some posts linking to information and articles about the coronavirus and COVID-19 as spam, as observed by one Verge reporter and many users on Twitter on Tuesday evening.',
+		category:'BizTech',
+		views:20,
+		tags:['Tech','Facebook','Coronavirus'],
+		user:{
+
+			name:'Jay Peters',
+			status: 'author'
+			},
+		date:Date(),
+		}
+	}},
+	{updateOne:{
+			'filter':{title:'Facebook was marking legitimate news articles about the coronavirus as spam due to a software bug'},
+			'update':{$set:{title:'Facebook was marking legitimate news articles about the coronavirus as spam due to a software bug and the comany is fixing them'}}
+	}},
+	{replaceOne:{
+		'filter':{title:'Facebook was marking legitimate news articles about the coronavirus as spam due to a software bug and the company is fixing the posts'},
+		'replacement':{
+		title:'Facebook was marking legitimate news articles about the coronavirus as spam due to a software bug',
+		body:'Facebook started marking some posts linking to information and articles about the coronavirus and COVID-19 as spam, as observed by one Verge reporter and many users on Twitter on Tuesday evening.',
+		category:'BizTech',
+		views:0,
+		tags:['Tech','Facebook','Coronavirus'],
+		user:{
+
+			name:'Jay Peters',
+			status: 'author'
+			},
+		date:Date(),
+		}
+	}}
+])
+--------------------------------------------------------------------------------
+Question5
+
+db.posts.bulkWrite(
+	[
+		{
+			updateMany:
+			{ 
+				'filter':{},
+				'update':{$inc: { number_of_views: 1}}
+			}
+		},
+		{
+			updateMany:
+			{
+				'filter':{ "tags": "Facebook" }, 
+				'update':{ "$set": { "tags.$[filter]": "facebook" } },
+				"arrayFilters": [ { "filter": "Facebook" } ] 
+			}
+		},
+		{
+			insertOne:{
+			"document":{
+			title:'Biden Takes Command of Race, Winning Three States Including Michigan',
+			body:'Joseph R. Biden Jr. widened his advantage over Bernie Sanders in the Democratic primary race, capturing Mississippi and Missouri as well as Michigan, with support from both black and white voters.',
+			category: 'Politics',
+			views:300,
+			tags:['news','events'],
+			user:{
+				name: 'John Doe',
+				status: 'author',
+				},
+			date:Date(),
+			}
+		}},
+		{
+			deleteMany:
+			{
+				"filter":{"author":{"$exists":false}}
+			}
+		}
+	]
+)
+		
+		
+		
+		
+		
+		
+
+
+
+
+
+--------------------------------------------------------------------------------
+Question6
+
+db.posts.aggregate([{$group : {_id : "$category", total : {$sum : "$number_of_views"}}}])	
+
+
+
+
+
+--------------------------------------------------------------------------------
+Question7
+
+function mapFunc() {
+  for (i in this.tags) {
+    val={count:1, views:this.views};
+    emit(this.tags[i], val);
+  }
+}
+
+function reduceFunc(tag, values) {
+  sum={count:0,views:0};
+  for(i in values)
+  {
+    sum.count+=i.count;
+    sum.views+=i.views;
+  };
+  return sum;
+}
+
+db.posts.mapReduce(mapFunc, reduceFunc, { query: {}, out: "rr" });
+db.rr.find()
+
+
+
+
+
+--------------------------------------------------------------------------------
+

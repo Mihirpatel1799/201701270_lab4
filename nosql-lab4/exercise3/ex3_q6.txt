@@ -1,0 +1,1 @@
+db.comments.aggregate([{ $sortByCount: "$name" },{$limit:5} ] )

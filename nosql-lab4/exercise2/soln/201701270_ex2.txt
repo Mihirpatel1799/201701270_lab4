@@ -1,0 +1,78 @@
+Question1
+
+db.createCollection("Sales", {
+	validator: {
+		$jsonSchema: {
+			bsonType: "object",
+			required: ["salesDate","purchaseMethod","storeLocation","couponUsed","items","tags","email","age"],
+			properties: {
+				salesDate: {
+					bsonType: "timestamp",
+					description: "must be a timestamp and is required"
+				},
+				purchaseMethod: {
+					enum: ["Online","In store","Phone"],
+					description: "One of the methods needs to be selected"
+				},
+				items: {
+					bsonType: ["array"],
+					items: {
+						bsonType: "object",
+						required: ["price", "quantity", "name" ],
+						properties: {
+							price: {
+								bsonType: "decimal",
+								description: "must be a decimal & required"
+							},
+							quantity: {
+								bsonType: "int",
+								description: "must be an int and required"
+							},
+							name: {
+								bsonType: "string",
+								description: "must be astring and required"
+							}
+						}
+					},
+					description: "must be an array of objects containing price,quantity,name"	
+				},
+				couponUsed: {
+					bsonType: "bool",
+					description: "Is bool"
+				},
+				storeLocation: {
+					enum: ["Seattle","New York","Austin", "London", "Denver", "San Diego"],
+					description: "One of the place needs to be selected"
+				},
+				tags: {
+					enum: ["kids", "school", "stationary", "writing", "organization", "travel", "electronics", "office", "general"],
+					description: "One of them needs to be selected"
+				},
+				email: {
+					bsonType: "string",
+					description: "Must be a string"
+				},
+				age: {
+					bsonType: "int",
+					description: "Must be an integer"
+				},
+				gender: {
+					bsonType: "string",
+					description: "must be a string"
+				},
+				satisfaction: {
+					bsonType: "int",
+					minimum: 0,
+					maximum: 5,
+					description: "must be an int"
+				}
+			}
+		}
+	}
+})
+-------------------------------------------------------------------------------
+Question2
+
+mongoimport --uri mongodb+srv://201701270:201701270@mihir-mwo9a.mongodb.net/201701270 --collection Sales --drop --file "C:\Users\Admin\Desktop\DAIICT\6th sem\No_Sql\Lab4_mongoDB-master\Lab4_mongoDB-master\data\sales\sales.json" --jsonArray
+
+-------------------------------------------------------------------------------
